@@ -1,11 +1,11 @@
-ace_medical_gui
+ace_medical_menu
 ===============
 
-Implements the interaction menu actions, medical menu, information display, and triage card.
+Provides the CSE medical menu for the advanced medical system.
+
 
 ## Maintainers
 
 The people responsible for merging changes to this component or answering potential questions.
 
 - [Glowbal](https://github.com/Glowbal)
-- [mharis001](https://github.com/mharis001)

@@ -1,63 +1,69 @@
+
 class CfgVehicles {
+
+    class ACE_Module;
+    class ACE_moduleMedicalMenuSettings: ACE_Module {
+        scope = 1;
+        displayName = CSTRING(module_DisplayName);
+        icon = QPATHTOEF(medical,UI\Icon_Module_Medical_ca.paa);
+        category = "ACE_medical";
+        function = QUOTE(DFUNC(module));
+        functionPriority = 1;
+        isGlobal = 1;
+        isSingular = 1;
+        isTriggerActivated = 0;
+        author = ECSTRING(common,ACETeam);
+        class Arguments {
+            class allow {
+                displayName = CSTRING(allow);
+                description = CSTRING(allow_Descr);
+                typeName = "NUMBER";
+                class values {
+                    class disable {
+                        name = ECSTRING(common,Disabled);
+                        value = 0;
+                    };
+                    class enable  {
+                        name = ECSTRING(common,Enabled);
+                        value = 1;
+                        default = 1;
+                    };
+                    class VehiclesOnly  {
+                        name = ECSTRING(common,VehiclesOnly);
+                        value = 2;
+                    };
+                };
+            };
+        };
+        class ModuleDescription {
+            description = CSTRING(module_Desc);
+            sync[] = {};
+        };
+    };
+
     class Man;
     class CAManBase: Man {
         class ACE_SelfActions {
-            class ACE_Medical {
-                displayName = CSTRING(Medical);
-                condition = QGVAR(enableSelfActions);
-                exceptions[] = {"isNotInside", "isNotSitting"};
-                statement = QUOTE([ARR_2(_target,0)] call FUNC(displayPatientInformation));
-                runOnHover = 1;
-                icon = QPATHTOF(ui\cross.paa);
-                #define ACTION_CONDITION condition = "true";
-                #include "InteractionBodyParts.hpp"
-                #undef ACTION_CONDITION
-            };
-            class ACE_Medical_Menu {
-                displayName = CSTRING(MedicalMenu);
-                condition = QUOTE([ARR_2(_player,_target)] call FUNC(canOpenMenu));
+            class Medical_Menu {
+                displayName = CSTRING(OpenMenu);
+                runOnHover = 0;
                 exceptions[] = {"isNotInside", "isNotSwimming"};
-                statement = QUOTE(_target call FUNC(openMenu));
-                icon = QPATHTOF(ui\cross.paa);
+                condition = QUOTE([ARR_2(ACE_player,_target)] call FUNC(canOpenMenu));
+                statement = QUOTE([_target] call DFUNC(openMenu));
+                icon = QPATHTOEF(medical,UI\icons\medical_cross.paa);
             };
         };
+
         class ACE_Actions {
-            #define ACTION_CONDITION condition = QUOTE(GVAR(enableActions) == 0);
-            #include "InteractionBodyParts.hpp"
-            #undef ACTION_CONDITION
+            // Create a consolidates medical menu for treatment while boarded
             class ACE_MainActions {
-                class ACE_Medical_Menu {
-                    displayName = CSTRING(MedicalMenu);
-                    condition = QUOTE([ARR_2(ACE_player,_target)] call FUNC(canOpenMenu));
+                class Medical_Menu {
+                    displayName = CSTRING(OpenMenu);
+                    runOnHover = 0;
                     exceptions[] = {"isNotInside", "isNotSwimming"};
-                    statement = QUOTE(_target call FUNC(openMenu));
-                    icon = QPATHTOF(ui\cross.paa);
-                };
-                class ACE_Medical_Radial {
-                    displayName = CSTRING(Medical);
-                    condition = QUOTE((GVAR(enableActions) == 1 || {GVAR(enableActions) != 2 && {vehicle _target != _target && {vehicle _target == vehicle _player}}}));
-                    exceptions[] = {"isNotInside", "isNotSitting"};
-                    statement = QUOTE([ARR_2(_target,0)] call FUNC(displayPatientInformation));
-                    runOnHover = 1;
-                    icon = QPATHTOF(ui\cross.paa);
-                    #define ACTION_CONDITION condition = "true";
-                    #include "InteractionBodyParts.hpp"
-                    #undef ACTION_CONDITION
-                };
-                class ACE_LoadPatient {
-                    displayName = CSTRING(LoadPatient);
-                    condition = QUOTE(_target getVariable [ARR_2('ACE_isUnconscious',false)] && {alive _target} && {vehicle _target == _target});
-                    exceptions[] = {"isNotDragging", "isNotCarrying"};
-                    statement = QUOTE([ARR_2(_player, _target)] call EFUNC(medical_treatment,loadUnit));
-                    icon = QPATHTOF(ui\cross.paa);
-                    insertChildren = QUOTE(call DEFUNC(medical_treatment,addLoadPatientActions));
-                };
-                class ACE_UnloadPatient {
-                    displayName = CSTRING(UnloadPatient);
-                    condition = QUOTE(_target getVariable [ARR_2('ACE_isUnconscious',false)] && {vehicle _target != _target} && {vehicle _player == _player});
-                    exceptions[] = {"isNotDragging", "isNotCarrying", "isNotInside"};
-                    statement = QUOTE([ARR_2(_player, _target)] call EFUNC(medical_treatment,unloadUnit));
-                    icon = QPATHTOF(ui\cross.paa);
+                    condition = QUOTE([ARR_2(ACE_player,_target)] call FUNC(canOpenMenu));
+                    statement = QUOTE([_target] call DFUNC(openMenu));
+                    icon = QPATHTOEF(medical,UI\icons\medical_cross.paa);
                 };
             };
         };

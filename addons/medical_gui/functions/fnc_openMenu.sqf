@@ -1,30 +1,34 @@
 #include "script_component.hpp"
 /*
  * Author: Glowbal
- * Opens the Medical Menu for given target.
+ * Open the medical menu for target
  *
  * Arguments:
  * 0: Target <OBJECT>
  *
  * Return Value:
- * None
+ * If action was taken <BOOL>
  *
  * Example:
- * [ACE_player] call ace_medical_gui_fnc_openMenu
+ * [some_player] call ace_medical_menu_fnc_openMenu
  *
  * Public: No
  */
 
-params ["_target"];
+params ["_interactionTarget"];
 
-if (dialog || {isNull _target}) exitWith {
-    private _display = uiNamespace getVariable [QGVAR(menuDisplay), displayNull];
-    if (!isNull _display) then {closeDialog 0};
+if (dialog || {isNull _interactionTarget}) exitWith {
+    disableSerialization;
+
+    private _display = uiNamespace getVariable QGVAR(medicalMenu);
+    if (!isNil "_display") then {
+        closeDialog 314412;
+    };
 };
 
-// Store current target
-GVAR(target) = _target;
+GVAR(INTERACTION_TARGET) = _interactionTarget;
 
-// Create the menu display
-createDialog "ACE_Medical_Menu";
+createDialog QGVAR(medicalMenu);
 GVAR(lastOpenedOn) = CBA_missionTime;
+
+true
