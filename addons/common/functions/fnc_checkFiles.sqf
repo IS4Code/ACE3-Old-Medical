@@ -27,9 +27,9 @@ private _cbaRequiredAr = getArray (configFile >> "CfgSettings" >> "CBA" >> "Vers
 private _cbaVersionStr = _cbaVersionAr joinString ".";
 private _cbaRequiredStr = _cbaRequiredAr joinString ".";
 
-INFO_3("ACE is version %1 - CBA is version %2 (min required %3)",_version,_cbaVersionStr,_cbaRequiredStr);
+//INFO_3("ACE is version %1 - CBA is version %2 (min required %3)",_version,_cbaVersionStr,_cbaRequiredStr);
 
-if ([_cbaRequiredAr, _cbaVersionAr] call cba_versioning_fnc_version_compare) then {
+//if ([_cbaRequiredAr, _cbaVersionAr] call cba_versioning_fnc_version_compare) then {
     private _errorMsg = format ["CBA version %1 is outdated (required %2)", _cbaVersionStr, _cbaRequiredStr];
     ERROR(_errorMsg);
     if (hasInterface) then {
@@ -38,9 +38,9 @@ if ([_cbaRequiredAr, _cbaVersionAr] call cba_versioning_fnc_version_compare) the
 };
 
 //private _addons = activatedAddons; // broken with High-Command module, see #2134
-private _addons = (cba_common_addons select {(_x select [0,4]) == "ace_"}) apply {toLower _x};
+//private _addons = (cba_common_addons select {(_x select [0,4]) == "ace_"}) apply {toLower _x};
 
-private _oldCompats = [];
+//private _oldCompats = [];
 {
     if (getText (configFile >> "CfgPatches" >> _x >> "versionStr") != _version) then {
         private _errorMsg = format ["File %1.pbo is outdated.", _x];
@@ -57,7 +57,7 @@ private _oldCompats = [];
     };
     false
 } count _addons;
-if (!(_oldCompats isEqualTo [])) then {
+//if (!(_oldCompats isEqualTo [])) then {
     [{
         // Lasts for ~10 seconds
         ERROR_WITH_TITLE_1("The following ACE compatiblity PBOs are outdated", "%1", _this);
@@ -110,7 +110,7 @@ if (isArray (configFile >> "ACE_Extensions" >> "extensions")) then {
 ///////////////
 // check server version/addons
 ///////////////
-if (isMultiplayer) then {
+//if (isMultiplayer) then {
     // don't check optional addons
     _addons = _addons select {getNumber (configFile >> "CfgPatches" >> _x >> "ACE_isOptional") != 1};
 

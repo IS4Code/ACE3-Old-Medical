@@ -29,12 +29,12 @@ _whitelist = toLower _whitelist;
 _whitelist = _whitelist splitString "[,""']";
 TRACE_1("Array",_whitelist);
 
-ACE_Version_CheckAll = _checkAll;
-ACE_Version_Whitelist = _whitelist;
+//ACE_Version_CheckAll = _checkAll;
+//ACE_Version_Whitelist = _whitelist;
 
-if (!_checkAll) exitWith {}; //ACE is checked by FUNC(checkFiles)
+//if (!_checkAll) exitWith {}; //ACE is checked by FUNC(checkFiles)
 
-if (!isServer) then {
+//if (!isServer) then {
     [{
         if (isNil "ACE_Version_ClientErrors") exitWith {};
 
@@ -101,6 +101,6 @@ if (!isServer) then {
     }, 1, [_mode, _checkAll, _whitelist]] call CBA_fnc_addPerFrameHandler;
 };
 
-if (_checkAll) then {
+//if (_checkAll) then {
     0 spawn COMPILE_FILE(scripts\checkVersionNumber); // @todo
 };
