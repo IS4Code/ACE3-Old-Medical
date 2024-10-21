@@ -1,25 +1,25 @@
 #include "script_component.hpp"
 /*
- * Author: Glowbal, mharis001
- * Checks if the player can open the Medical Menu for the target.
+ * Author: Glowbal
+ * Check if ACE_player can Open the medical menu
  *
  * Arguments:
- * 0: Player <OBJECT>
+ * 0: Caller <OBJECT>
  * 1: Target <OBJECT>
  *
  * Return Value:
  * Can open <BOOL>
  *
  * Example:
- * [player, cursorTarget] call ace_medical_gui_fnc_canOpenMenu
+ * [player, cursorTarget] call ace_medical_menu_fnc_canOpenMenu
  *
  * Public: No
  */
 
-params ["_player", "_target"];
+params ["_caller", "_target"];
 
-alive _player
-&& {!IS_UNCONSCIOUS(_player)}
+(alive _caller)
 && {!isNull _target}
-&& {_player distance _target < GVAR(maxDistance) || {vehicle _player == vehicle _target}}
-&& {GVAR(enableMedicalMenu) == 1 || {GVAR(enableMedicalMenu) == 2 && {vehicle _player != _player || {vehicle _target != _target}}}}
+&& {((_caller distance _target) < GVAR(maxRange)) || {(vehicle _caller) == (vehicle _target)}} //for now, ignore range when in same vehicle
+&& {(GVAR(allow) == 1) || {(GVAR(allow) == 2) && {(vehicle _caller != _caller) || {vehicle _target != _target}}}}
+&& {(GVAR(useMenu) == 1) || {(GVAR(useMenu) == 2) && {(vehicle _caller != _caller) || {vehicle _target != _target}}}}

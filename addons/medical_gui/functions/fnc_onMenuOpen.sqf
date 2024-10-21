@@ -1,7 +1,7 @@
 #include "script_component.hpp"
 /*
- * Author: Glowbal, mharis001
- * Handles opening the Medical Menu. Called from onLoad event.
+ * Author: Glowbal
+ * Handle medical menu opened
  *
  * Arguments:
  * 0: Medical Menu display <DISPLAY>
@@ -10,64 +10,79 @@
  * None
  *
  * Example:
- * [DISPLAY] call ace_medical_gui_fnc_onMenuOpen
+ * [medical_menu] call ace_medical_menu_fnc_onMenuOpen
  *
  * Public: No
  */
+#define MAX_DISTANCE 10
 
 params ["_display"];
 
-// Create background effects based on interact menu setting
-if (EGVAR(interact_menu,menuBackground) == 1) then {[QGVAR(id), true] call EFUNC(common,blurScreen)};
-if (EGVAR(interact_menu,menuBackground) == 2) then {0 cutRsc [QEGVAR(interact_menu,menuBackground), "PLAIN", 1, false]};
+if (isNil "_display") exitWith {};
 
-// Fix mouse moving randomly
-[{
-    [{setMousePosition _this}, _this] call CBA_fnc_execNextFrame;
-}, getMousePosition] call CBA_fnc_execNextFrame;
+if (EGVAR(interact_menu,menuBackground)==1) then {[QGVAR(id), true] call EFUNC(common,blurScreen);};
+if (EGVAR(interact_menu,menuBackground)==2) then {0 cutRsc[QEGVAR(interact_menu,menuBackground), "PLAIN", 1, false];};
 
-// Set target name as title
-private _ctrlTitle = _display displayCtrl IDC_TITLE;
-_ctrlTitle ctrlSetText ([GVAR(target)] call EFUNC(common,getName));
-
-// Initially hide the triage select buttons
-[_display] call FUNC(toggleTriageSelect);
-
-// Store display and add PFH to update it
-uiNamespace setVariable [QGVAR(menuDisplay), _display];
-["ace_medicalMenuOpened", [ACE_player, GVAR(target), _display]] call CBA_fnc_localEvent;
-
-if (GVAR(menuPFH) != -1) exitWith {
-    TRACE_1("Menu PFH already running",GVAR(menuPFH));
+if (isNil QGVAR(LatestDisplayOptionMenu)) then {
+    GVAR(LatestDisplayOptionMenu) = "triage";
+} else {
+    if (GVAR(LatestDisplayOptionMenu) == "toggle") then {
+        GVAR(LatestDisplayOptionMenu) = "triage";
+        GVAR(INTERACTION_TARGET) = GVAR(INTERACTION_TARGET_PREVIOUS);
+    };
 };
 
-GVAR(menuPFH) = [FUNC(menuPFH), 0, []] call CBA_fnc_addPerFrameHandler;
+private _target = GVAR(INTERACTION_TARGET);
+if (isNil QGVAR(INTERACTION_TARGET_PREVIOUS)) then {
+    GVAR(INTERACTION_TARGET_PREVIOUS) = _target;
+};
+[GVAR(LatestDisplayOptionMenu)] call FUNC(handleUI_DisplayOptions);
 
-// Hide categories if they don't have any actions (airway)
-private _list = [
-    [IDC_TRIAGE, true],
-    [IDC_EXAMINE, true],
-    [IDC_BANDAGE, "bandage"],
-    [IDC_MEDICATION, "medication"],
-    [IDC_AIRWAY, "airway"],
-    [IDC_ADVANCED, "advanced"],
-    [IDC_DRAG, "drag"],
-    [IDC_TOGGLE, true]
-];
-private _countEnabled = {
-    _x params ["", "_category"];
-    if (_category isEqualType "") then { _x set [1, (GVAR(actions) findIf {_category == _x select 1}) > -1]; };
-    _x select 1
-} count _list;
-private _offsetX = POS_X(1.5) + 0.5 * (POS_X(12) - POS_X(_countEnabled * 1.5));
-{
-    _x params ["_idc", "_enabled"];
-    private _ctrl = _display displayCtrl _idc;
-    if (_enabled) then {
-        _ctrl ctrlSetPositionX _offsetX;
-        _ctrl ctrlCommit 0;
-        _offsetX = _offsetX + POS_W(1.5);
-    } else {
-        _ctrl ctrlShow false;
+disableSerialization;
+
+[_target, _display] call FUNC(updateUIInfo);
+
+(_display displayCtrl 11) ctrlSetTooltip localize LSTRING(VIEW_TRIAGE_CARD);
+(_display displayCtrl 12) ctrlSetTooltip localize LSTRING(EXAMINE_PATIENT);
+(_display displayCtrl 13) ctrlSetTooltip localize LSTRING(BANDAGE_FRACTURES);
+(_display displayCtrl 14) ctrlSetTooltip localize LSTRING(MEDICATION);
+(_display displayCtrl 15) ctrlSetTooltip localize LSTRING(AIRWAY_MANAGEMENT);
+(_display displayCtrl 16) ctrlSetTooltip localize LSTRING(ADVANCED_TREATMENT);
+(_display displayCtrl 17) ctrlSetTooltip localize LSTRING(DRAG_CARRY);
+(_display displayCtrl 18) ctrlSetTooltip localize LSTRING(TOGGLE_SELF);
+
+(_display displayCtrl 301) ctrlSetTooltip localize LSTRING(SELECT_HEAD);
+(_display displayCtrl 302) ctrlSetTooltip localize LSTRING(SELECT_TORSO);
+(_display displayCtrl 303) ctrlSetTooltip localize LSTRING(SELECT_ARM_R);
+(_display displayCtrl 304) ctrlSetTooltip localize LSTRING(SELECT_ARM_L);
+(_display displayCtrl 305) ctrlSetTooltip localize LSTRING(SELECT_LEG_R);
+(_display displayCtrl 306) ctrlSetTooltip localize LSTRING(SELECT_LEG_L);
+(_display displayCtrl 2001) ctrlSetTooltip localize LSTRING(SELECT_TRIAGE_STATUS);
+
+(_display displayCtrl 1) ctrlSetText format ["%1", [_target] call EFUNC(common,getName)];
+setMousePosition [0.4, 0.4];
+
+if (GVAR(MenuPFHID) != -1) exitWith {ERROR("PFID already running");};
+
+GVAR(MenuPFHID) = [{
+
+    (_this select 0) params ["_display"];
+    if (isNull GVAR(INTERACTION_TARGET)) then {
+        GVAR(INTERACTION_TARGET) = ACE_player;
     };
-} forEach _list;
+    [GVAR(INTERACTION_TARGET), _display] call FUNC(updateUIInfo);
+    [GVAR(INTERACTION_TARGET)] call FUNC(updateIcons);
+    [GVAR(LatestDisplayOptionMenu)] call FUNC(handleUI_DisplayOptions);
+
+    //Check that it's valid to stay open:
+    if !(([ACE_player, GVAR(INTERACTION_TARGET), ["isNotInside", "isNotSwimming"]] call EFUNC(common,canInteractWith)) && {[ACE_player, GVAR(INTERACTION_TARGET)] call FUNC(canOpenMenu)}) then {
+        closeDialog 314412;
+        //If we failed because of distance check, show UI message:
+        if ((ACE_player distance GVAR(INTERACTION_TARGET)) > GVAR(maxRange)) then {
+            [[ELSTRING(medical,DistanceToFar), [GVAR(INTERACTION_TARGET)] call EFUNC(common,getName)], 2] call EFUNC(common,displayTextStructured);
+        };
+    };
+
+}, 0, [_display]] call CBA_fnc_addPerFrameHandler;
+
+["ace_medicalMenuOpened", [ACE_player, _target]] call CBA_fnc_localEvent;
